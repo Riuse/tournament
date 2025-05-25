@@ -58,24 +58,25 @@ export class Match {
     if (score1 < 0 || score2 < 0) {
       throw new Error('Scores cannot be negative');
     }
+    if (score1 === 0 && score2 === 0) {
+      this.resetResult();
+      return;
+    }
+
+    if (score1 === score2) {
+      throw new Error('Scores cannot be equal (except 0-0 to reset)');
+    }
 
     this.score1 = score1;
     this.score2 = score2;
+    this.winnerId = score1 > score2 ? this.participant1Id : this.participant2Id;
     this.status = 'completed';
-    this.endTime = new Date();
-    
-    // Determine winner and loser
-    if (score1 > score2) {
-      this.winnerId = this.participant1Id;
-      this.loserId = this.participant2Id;
-    } else if (score2 > score1) {
-      this.winnerId = this.participant2Id;
-      this.loserId = this.participant1Id;
-    } else {
-      // In case of a tie, participant1 wins
-      this.winnerId = this.participant1Id;
-      this.loserId = this.participant2Id;
-    }
+  }
+  resetResult(): void {
+    this.score1 = 0;
+    this.score2 = 0;
+    this.winnerId = null;
+    this.status = 'pending';
   }
 
   toJSON() {

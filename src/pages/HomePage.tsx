@@ -74,8 +74,8 @@ const HomePage: React.FC = () => {
               >
                 <div className="tournament-card__header">
                   <h3 className="tournament-card__title">{tournament.name}</h3>
-                  <span className={`tournament-card__type tournament-card__type--${tournament.type}`}>
-                    {tournament.type.replace('-', ' ')}
+                  <span className="tournament-card__type">
+                    Single elimination
                   </span>
                 </div>
                 <div className="tournament-card__body">
@@ -97,39 +97,6 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         )}
-      </section>
-
-      <section className="features">
-        <h2 className="features__title">Powerful Tournament Management</h2>
-        <div className="features__grid">
-          <div className="feature-card">
-            <div className="feature-card__icon">
-              <Trophy />
-            </div>
-            <h3 className="feature-card__title">Multiple Bracket Types</h3>
-            <p className="feature-card__description">
-              Support for single elimination, double elimination, and round-robin tournaments
-            </p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-card__icon">
-              <Users />
-            </div>
-            <h3 className="feature-card__title">Participant Management</h3>
-            <p className="feature-card__description">
-              Easy participant registration, seeding, and management
-            </p>
-          </div>
-          <div className="feature-card">
-            <div className="feature-card__icon">
-              <Calendar />
-            </div>
-            <h3 className="feature-card__title">Match Scheduling</h3>
-            <p className="feature-card__description">
-              Schedule matches and track results in real-time
-            </p>
-          </div>
-        </div>
       </section>
     </div>
   );

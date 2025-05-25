@@ -10,8 +10,6 @@ interface BracketViewProps {
 
 const BracketView: React.FC<BracketViewProps> = ({ tournament, onUpdateMatch }) => {
   const rounds = Array.from({ length: tournament.rounds }, (_, i) => i + 1);
-  
-  // Get match count per round
   const getMatchCountForRound = (round: number) => {
     return Math.pow(2, tournament.rounds - round);
   };

@@ -41,9 +41,6 @@ const ParticipantList: React.FC<ParticipantListProps> = ({
               
               <div className="participant-list__info">
                 <span className="participant-list__name">{participant.name}</span>
-                {participant.seed && (
-                  <span className="participant-list__seed">Seed: {participant.seed}</span>
-                )}
               </div>
               
               <div className="participant-list__actions">

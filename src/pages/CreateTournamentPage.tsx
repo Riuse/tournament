@@ -8,7 +8,7 @@ const CreateTournamentPage: React.FC = () => {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [type, setType] = useState<TournamentType>('single-elimination');
+  const [type] = useState<TournamentType>('single-elimination');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,31 +107,10 @@ const CreateTournamentPage: React.FC = () => {
         <div className="create-tournament__form-group">
           <label className="create-tournament__label">Tournament Type</label>
           <div className="create-tournament__type-options">
-            <label className={`create-tournament__type-option ${type === 'single-elimination' ? 'create-tournament__type-option--active' : ''}`}>
-              <input
-                type="radio"
-                name="type"
-                value="single-elimination"
-                checked={type === 'single-elimination'}
-                onChange={() => setType('single-elimination')}
-                className="create-tournament__type-input"
-              />
+            <div className="create-tournament__type-option create-tournament__type-option--active">
               <Trophy size={20} />
               <span>Single Elimination</span>
-            </label>
-            
-            <label className={`create-tournament__type-option ${type === 'double-elimination' ? 'create-tournament__type-option--active' : ''}`}>
-              <input
-                type="radio"
-                name="type"
-                value="double-elimination"
-                checked={type === 'double-elimination'}
-                onChange={() => setType('double-elimination')}
-                className="create-tournament__type-input"
-              />
-              <Trophy size={20} />
-              <span>Double Elimination</span>
-            </label>
+            </div>
           </div>
         </div>
         

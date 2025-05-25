@@ -17,6 +17,10 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, participants, onUpdateMatc
   const participant1 = participants.find(p => p.id === match.participant1Id);
   const participant2 = participants.find(p => p.id === match.participant2Id);
   
+  // Добавляем проверку на наличие участника
+  const isParticipant1Winner = participant1 && match.winnerId === match.participant1Id;
+  const isParticipant2Winner = participant2 && match.winnerId === match.participant2Id;
+  
   const handleSave = () => {
     if (score1 < 0 || score2 < 0) return;
     onUpdateMatch(match.id, score1, score2);
@@ -65,18 +69,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, participants, onUpdateMatc
       </div>
       
       <div className="match-card__body">
-        <div className={`match-card__participant ${match.winnerId === match.participant1Id ? 'match-card__participant--winner' : ''}`}>
+        <div className={`match-card__participant ${isParticipant1Winner ? 'match-card__participant--winner' : ''}`}>
           <div className="match-card__participant-info">
             {participant1 ? (
               <>
                 <span className="match-card__participant-name">
                   {participant1.name}
                 </span>
-                {participant1.seed && (
-                  <span className="match-card__participant-seed">
-                    ({participant1.seed})
-                  </span>
-                )}
               </>
             ) : (
               <span className="match-card__participant-placeholder">
@@ -102,18 +101,13 @@ const MatchCard: React.FC<MatchCardProps> = ({ match, participants, onUpdateMatc
           </div>
         </div>
         
-        <div className={`match-card__participant ${match.winnerId === match.participant2Id ? 'match-card__participant--winner' : ''}`}>
+        <div className={`match-card__participant ${isParticipant2Winner ? 'match-card__participant--winner' : ''}`}>
           <div className="match-card__participant-info">
             {participant2 ? (
               <>
                 <span className="match-card__participant-name">
                   {participant2.name}
                 </span>
-                {participant2.seed && (
-                  <span className="match-card__participant-seed">
-                    ({participant2.seed})
-                  </span>
-                )}
               </>
             ) : (
               <span className="match-card__participant-placeholder">

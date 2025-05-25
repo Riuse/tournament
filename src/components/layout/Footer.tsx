@@ -10,13 +10,11 @@ const Footer: React.FC = () => {
         <div className="footer__brand">
           <Trophy className="footer__logo-icon" />
           <p className="footer__copyright">
-            &copy; {year} TourneyPro. All rights reserved.
+            &copy; {year} TourneyBracket. Created by Riuse
           </p>
         </div>
         
         <div className="footer__links">
-          <a href="#" className="footer__link">Terms</a>
-          <a href="#" className="footer__link">Privacy</a>
           <a href="#" className="footer__link">Contact</a>
         </div>
       </div>

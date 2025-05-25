@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Plus, Moon, Sun } from 'lucide-react';
+import { Trophy, Plus} from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const Header: React.FC = () => {
@@ -11,7 +11,7 @@ const Header: React.FC = () => {
       <div className="header__container">
         <Link to="/" className="header__logo">
           <Trophy className="header__logo-icon" />
-          <span className="header__logo-text">TourneyPro</span>
+          <span className="header__logo-text">TourneyBracket</span>
         </Link>
         
         <nav className="header__nav">
@@ -35,11 +35,6 @@ const Header: React.FC = () => {
           onClick={toggleTheme}
           aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
         >
-          {theme === 'light' ? (
-            <Moon size={20} />
-          ) : (
-            <Sun size={20} />
-          )}
         </button>
       </div>
     </header>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trophy } from 'lucide-react';
+import { Trophy, Github } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const year = new Date().getFullYear();
@@ -15,7 +15,15 @@ const Footer: React.FC = () => {
         </div>
         
         <div className="footer__links">
-          <a href="#" className="footer__link">Contact</a>
+          <a 
+            href="https://github.com/Riuse" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="footer__link"
+          >
+            <Github size={18} className="footer__icon" />
+            GitHub
+          </a>
         </div>
       </div>
     </footer>

@@ -2,7 +2,6 @@ import { Tournament, TournamentType } from '../models/Tournament';
 import { Participant } from '../models/Participant';
 import { Match } from '../models/Match';
 
-// Simulating API storage with localStorage
 class ApiService {
   private storage: Storage;
   private tournamentKey = 'tournaments';
@@ -11,7 +10,6 @@ class ApiService {
     this.storage = localStorage;
   }
 
-  // Tournament CRUD
   async getTournaments(): Promise<Tournament[]> {
     try {
       const data = this.storage.getItem(this.tournamentKey);
@@ -92,7 +90,6 @@ class ApiService {
     }
   }
 
-  // Participant management
   async addParticipant(tournamentId: string, participant: Participant): Promise<Tournament> {
     try {
       const tournament = await this.getTournament(tournamentId);
@@ -103,7 +100,6 @@ class ApiService {
       
       tournament.addParticipant(participant);
       
-      // Regenerate bracket if it exists
       if (tournament.matches.length > 0) {
         tournament.generateBracket();
       }
@@ -125,7 +121,6 @@ class ApiService {
       
       tournament.removeParticipant(participantId);
       
-      // Regenerate bracket if it exists
       if (tournament.matches.length > 0) {
         tournament.generateBracket();
       }
@@ -137,7 +132,6 @@ class ApiService {
     }
   }
 
-  // Match management
   async updateMatchResult(
     tournamentId: string,
     matchId: string,
@@ -159,7 +153,6 @@ class ApiService {
     }
   }
 
-  // Bracket generation
   async generateBracket(tournamentId: string): Promise<Tournament> {
     try {
       const tournament = await this.getTournament(tournamentId);
@@ -177,6 +170,5 @@ class ApiService {
   }
 }
 
-// Create singleton instance
 const apiService = new ApiService();
 export default apiService;

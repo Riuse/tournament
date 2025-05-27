@@ -38,7 +38,6 @@ export class Tournament {
   }
 
   addParticipant(participant: Participant): void {
-    // Check if participant with same name already exists
     if (this.participants.some(p => p.name.toLowerCase() === participant.name.toLowerCase())) {
       throw new Error('A participant with this name already exists');
     }
@@ -47,209 +46,148 @@ export class Tournament {
   }
 
   removeParticipant(participantId: string): void {
-    this.participants = this.participants.filter(
-      (participant) => participant.id !== participantId
-    );
+    this.participants = this.participants.filter(p => p.id !== participantId);
     this.updatedAt = new Date();
   }
 
   generateBracket(): void {
-  this.matches = [];
-  
-  if (this.participants.length < 2) {
-    throw new Error('Need at least 2 participants to generate a bracket');
-  }
+    if (this.participants.length < 2) {
+      throw new Error('Tournament needs at least 2 participants');
+    }
 
-  // Shuffle participants randomly
-  const shuffledParticipants = [...this.participants]
-    .sort(() => Math.random() - 0.5);
-
-  // Calculate number of rounds needed
-  this.rounds = Math.ceil(Math.log2(shuffledParticipants.length));
-  const perfectBracketSize = Math.pow(2, this.rounds);
-  
-  // Calculate how many participants get byes (pass to next round automatically)
-  const byesCount = perfectBracketSize - shuffledParticipants.length;
-  
-  // Split participants into those who play in first round and those who get byes
-  const firstRoundParticipants = shuffledParticipants.slice(byesCount);
-  const byeParticipants = shuffledParticipants.slice(0, byesCount);
-  
-  // Create first round matches
-  const firstRoundMatches = Math.floor(firstRoundParticipants.length / 2);
-  let participantIndex = 0;
-  
-  for (let i = 0; i < firstRoundMatches; i++) {
-    const match = new Match(this.id, 1, i + 1);
-    match.participant1Id = firstRoundParticipants[participantIndex++].id;
-    match.participant2Id = firstRoundParticipants[participantIndex++].id;
-    this.matches.push(match);
-  }
-  
-  // Create subsequent rounds and assign bye participants
-  for (let round = 2; round <= this.rounds; round++) {
-    const matchesInRound = Math.pow(2, this.rounds - round);
+    // Reset matches
+    this.matches = [];
     
-    for (let i = 0; i < matchesInRound; i++) {
-      const match = new Match(this.id, round, i + 1);
+    // Calculate rounds needed (ceiling of log2 of participant count)
+    this.rounds = Math.ceil(Math.log2(this.participants.length));
+    
+    // Calculate byes needed
+    const totalSlots = Math.pow(2, this.rounds);
+    const byeCount = totalSlots - this.participants.length;
+    
+    // Shuffle participants
+    const shuffledParticipants = [...this.participants]
+      .sort(() => Math.random() - 0.5);
+    
+    // Generate first round matches
+    let matchNumber = 1;
+    for (let i = 0; i < totalSlots / 2; i++) {
+      const match = new Match(this.id, 1, matchNumber++);
       
-      // Check if this match position should get a bye participant
-      const byeIndex = i - (matchesInRound - byeParticipants.length);
-      if (byeIndex >= 0 && byeIndex < byeParticipants.length) {
-        match.participant1Id = byeParticipants[byeIndex].id;
+      // Handle bye matches
+      if (i >= (totalSlots / 2) - byeCount) {
+        const participant = shuffledParticipants[i];
+        match.participant1Id = participant.id;
+        match.participant2Id = null; // Bye
+        match.status = 'completed';
+        match.winnerId = participant.id;
+      } else {
+        const participant1 = shuffledParticipants[i];
+        const participant2 = shuffledParticipants[shuffledParticipants.length - 1 - i];
+        match.participant1Id = participant1.id;
+        match.participant2Id = participant2.id;
       }
       
       this.matches.push(match);
     }
-  }
-  
-  // Sort matches by round and match number
-  this.matches.sort((a, b) => {
-    if (a.round !== b.round) return a.round - b.round;
-    return a.matchNumber - b.matchNumber;
-  });
-}
 
-  getMatchesByRound(round: number): Match[] {
-    return this.matches.filter(match => match.round === round);
-  }
-  private cleanupPreviousAdvancement(match: Match, previousWinnerId: string): void {
-    const nextRound = match.round + 1;
-    if (nextRound > this.rounds) return;
+    // Generate subsequent round matches
+    for (let round = 2; round <= this.rounds; round++) {
+      const matchesInRound = Math.pow(2, this.rounds - round);
+      for (let i = 0; i < matchesInRound; i++) {
+        const match = new Match(this.id, round, matchNumber++);
+        this.matches.push(match);
+      }
+    }
 
-    const nextMatchNumber = Math.ceil(match.matchNumber / 2);
-    const nextMatch = this.matches.find(
-      m => m.round === nextRound && m.matchNumber === nextMatchNumber
+    // Advance bye winners automatically
+    const byeMatches = this.matches.filter(m => 
+      m.round === 1 && m.participant2Id === null && m.winnerId
+    );
+    byeMatches.forEach(match => this.advanceWinner(match));
+    
+    this.updatedAt = new Date();
+  }
+
+  private advanceWinner(match: Match): void {
+    if (!match.winnerId || match.round === this.rounds) return;
+
+    const matchesInRound = Math.pow(2, this.rounds - match.round);
+    const nextRoundFirstMatch = this.matches.findIndex(m => m.round === match.round + 1);
+    const positionInRound = match.matchNumber - 
+      this.matches.find(m => m.round === match.round)!.matchNumber;
+    
+    const nextMatchIndex = nextRoundFirstMatch + Math.floor(positionInRound / 2);
+    const nextMatch = this.matches[nextMatchIndex];
+    
+    if (!nextMatch) return;
+
+    const winner = this.participants.find(p => p.id === match.winnerId);
+    if (!winner) return;
+
+    if (positionInRound % 2 === 0) {
+      nextMatch.participant1Id = winner.id;
+    } else {
+      nextMatch.participant2Id = winner.id;
+    }
+
+    if (nextMatch.participant1Id && nextMatch.participant2Id) {
+      nextMatch.status = 'in-progress';
+    }
+  }
+
+  updateMatchResult(matchId: string, score1: number, score2: number): void {
+    const match = this.matches.find(m => m.id === matchId);
+    if (!match) throw new Error('Match not found');
+
+    const previousWinnerId = match.winnerId;
+    match.updateResult(score1, score2);
+
+    if (previousWinnerId !== match.winnerId) {
+      this.cleanupAdvancement(match, previousWinnerId);
+    }
+
+    if (match.winnerId) {
+      this.advanceWinner(match);
+    }
+
+    this.updatedAt = new Date();
+  }
+
+  private cleanupAdvancement(match: Match, previousWinnerId: string | null): void {
+    if (!previousWinnerId || match.round === this.rounds) return;
+
+    const nextMatch = this.matches.find(m => 
+      m.round === match.round + 1 && 
+      (m.participant1Id === previousWinnerId || m.participant2Id === previousWinnerId)
     );
 
     if (!nextMatch) return;
 
-    // Remove previous winner from next match
     if (nextMatch.participant1Id === previousWinnerId) {
       nextMatch.participant1Id = null;
-      // Move bye participant to first slot if exists in second slot
-      if (nextMatch.participant2Id && !nextMatch.participant1Id) {
-        nextMatch.participant1Id = nextMatch.participant2Id;
-        nextMatch.participant2Id = null;
-      }
-    } else if (nextMatch.participant2Id === previousWinnerId) {
+    } else {
       nextMatch.participant2Id = null;
     }
 
-    // Reset match result if participants changed
-    if (nextMatch.status === 'completed') {
-      nextMatch.resetResult();
+    nextMatch.status = 'pending';
+    
     if (nextMatch.winnerId) {
-      this.cleanupPreviousAdvancement(nextMatch, nextMatch.winnerId);
+      this.cleanupAdvancement(nextMatch, nextMatch.winnerId);
+      nextMatch.resetResult();
     }
-    }
-  }
- updateMatchResult(matchId: string, score1: number, score2: number): void {
-  const match = this.matches.find(m => m.id === matchId);
-  
-  if (!match) {
-    throw new Error('Match not found');
   }
 
-  // Handle reset case
-  if (score1 === 0 && score2 === 0) {
-    this.resetMatchResult(match);
-    return;
+  getMatchesByRound(round: number): Match[] {
+    return this.matches.filter(match => match.round === round);
   }
-
-  if (score1 < 0 || score2 < 0) {
-    throw new Error('Scores cannot be negative');
-  }
-
-  if (score1 === score2) {
-    throw new Error('Scores cannot be equal (except 0-0 to reset)');
-  }
-
-  const previousWinnerId = match.winnerId;
-  
-  // Update current match
-  match.score1 = score1;
-  match.score2 = score2;
-  match.winnerId = score1 > score2 ? match.participant1Id : match.participant2Id;
-  match.status = 'completed';
-  this.updatedAt = new Date();
-
-  // Clean up previous advancement if winner changed
-  if (previousWinnerId && previousWinnerId !== match.winnerId) {
-    this.cleanupPreviousAdvancement(match, previousWinnerId);
-  }
-
-  // Advance new winner
-  this.advanceWinner(match);
-}
-
-private resetMatchResult(match: Match): void {
-  const previousWinnerId = match.winnerId;
-  
-  // Reset current match
-  match.score1 = 0;
-  match.score2 = 0;
-  match.winnerId = null;
-  match.status = 'pending';
-
-  // Clean up previous advancement
-  if (previousWinnerId) {
-    this.cleanupPreviousAdvancement(match, previousWinnerId);
-  }
-}
-
-  private advanceWinner(match: Match): void {
-  if (!match.winnerId) return;
-  
-  const nextRound = match.round + 1;
-  if (nextRound > this.rounds) return;
-  
-  const nextMatchNumber = Math.ceil(match.matchNumber / 2);
-  const nextMatch = this.matches.find(
-    m => m.round === nextRound && m.matchNumber === nextMatchNumber
-  );
-  
-  if (!nextMatch) return;
-  if (match.winnerId === null) return;
-  // Determine which slot this winner should go to based on match position
-  const isFirstSlot = match.matchNumber % 2 === 1;
-  
-  // Clear previous assignment if this winner was already advanced
-  if (nextMatch.participant1Id === match.winnerId) {
-    nextMatch.participant1Id = null;
-  }
-  if (nextMatch.participant2Id === match.winnerId) {
-    nextMatch.participant2Id = null;
-  }
-  
-  // Assign to correct slot
-  if (isFirstSlot) {
-    // If first slot is occupied by a bye, move it to second slot
-    if (nextMatch.participant1Id && !nextMatch.participant2Id) {
-      nextMatch.participant2Id = nextMatch.participant1Id;
-      nextMatch.participant1Id = match.winnerId;
-    } else {
-      nextMatch.participant1Id = match.winnerId;
-    }
-  } else {
-    nextMatch.participant2Id = match.winnerId;
-  }
-  
-  // Reset match result if participants changed
-  if (nextMatch.status === 'completed') {
-    nextMatch.resetResult();
-  }
-}
 
   getWinner(): Participant | null {
     const finalMatch = this.matches.find(
       match => match.round === this.rounds && match.status === 'completed'
     );
     
-    if (!finalMatch || !finalMatch.winnerId) {
-      return null;
-    }
-    
+    if (!finalMatch?.winnerId) return null;
     return this.participants.find(p => p.id === finalMatch.winnerId) || null;
   }
 

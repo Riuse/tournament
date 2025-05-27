@@ -1,10 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Trophy, Plus} from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
 
 const Header: React.FC = () => {
-  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="header">
@@ -29,13 +27,6 @@ const Header: React.FC = () => {
             </li>
           </ul>
         </nav>
-        
-        <button 
-          className="header__theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-        </button>
       </div>
     </header>
   );
